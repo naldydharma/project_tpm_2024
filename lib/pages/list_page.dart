@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_tpm1/pages/detail_page.dart';
 import 'package:project_tpm1/pages/favorite_page.dart';
+import 'package:project_tpm1/pages/message_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
@@ -77,35 +78,71 @@ class _ListPageState extends State<ListPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FavoritePage(
-                    favorites: favorites,
-                    onUpdateFavorites: (updatedFavorites) {
-                      setState(() {
-                        favorites = updatedFavorites; // Memperbarui favorites
-                      });
-                    },
+          PopupMenuButton<String>(
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: 'FavoritePage',
+                child: Text('Favorite Page'),
+              ),
+              PopupMenuItem<String>(
+                value: 'Message',
+                child: Text('Message'),
+              ),
+            ],
+            onSelected: (String value) {
+              if (value == 'FavoritePage') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FavoritePage(
+                      favorites: favorites,
+                      onUpdateFavorites: (updatedFavorites) {
+                        setState(() {
+                          favorites = updatedFavorites; // Memperbarui favorites
+                        });
+                      },
+                    ),
                   ),
-                ),
-              );
+                );
+              } else if (value == 'Message') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyFormPage()),
+                );
+              }
             },
-            icon: Icon(Icons.favorite, color: Colors.white),
-          ),
-          IconButton(
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('login', true);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-            icon: Icon(Icons.logout, color: Colors.white),
           )
+
+          // IconButton(
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => FavoritePage(
+          //           favorites: favorites,
+          //           onUpdateFavorites: (updatedFavorites) {
+          //             setState(() {
+          //               favorites = updatedFavorites; // Memperbarui favorites
+          //             });
+          //           },
+          //         ),
+          //       ),
+          //     );
+          //   },
+          //   icon: Icon(Icons.favorite, color: Colors.white),
+          // ),
+          // IconButton(
+          //   onPressed: () async {
+          //     SharedPreferences prefs = await SharedPreferences.getInstance();
+          //     await prefs.setBool('login', true);
+          //     Navigator.pushReplacement(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => LoginPage()),
+          //     );
+          //   },
+          //   icon: Icon(Icons.logout, color: Colors.white),
+          // )
         ],
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
         centerTitle: true,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_tpm1/pages/konversi_uang.dart';
 import 'package:project_tpm1/pages/konversi_waktu.dart';
+import 'package:project_tpm1/pages/message_page.dart';
 import './profile_page.dart';
 import './list_page.dart';
 
@@ -17,7 +18,8 @@ class _HomePageState extends State<HomePage> {
   static List<Widget> _widgetOptions = <Widget> [
     ListPage(),
     konversiUang(),
-    TimeConverterPage()
+    TimeConverterPage(),
+    MyFormPage()
     // ProfilePage(),
 
   ];
