@@ -13,6 +13,7 @@ class ListPage extends StatefulWidget {
   @override
   State<ListPage> createState() => _ListPageState();
 }
+
 class _ListPageState extends State<ListPage> {
   List<mmoGamesList>? game = [];
   List<String> favorites = [];
@@ -26,7 +27,20 @@ class _ListPageState extends State<ListPage> {
   // Metode untuk menambahkan item ke daftar favorit
   void addToFavorites(String title) {
     setState(() {
-      favorites.add(title);
+      if (!favorites.contains(title)) {
+        favorites.add(title);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Game ditambahkan menjadi favorite'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Game sudah ada di halaman favorite'),
+          ),
+        );
+      }
     });
   }
 
@@ -67,7 +81,16 @@ class _ListPageState extends State<ListPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FavoritePage(favorites: favorites)),
+                MaterialPageRoute(
+                  builder: (context) => FavoritePage(
+                    favorites: favorites,
+                    onUpdateFavorites: (updatedFavorites) {
+                      setState(() {
+                        favorites = updatedFavorites; // Memperbarui favorites
+                      });
+                    },
+                  ),
+                ),
               );
             },
             icon: Icon(Icons.favorite, color: Colors.white),
@@ -121,14 +144,12 @@ class _ListPageState extends State<ListPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: IconButton(
-                      icon: Icon(Icons.favorite_border),
+                      icon: Icon(
+                        favorites.contains(data.title) ? Icons.favorite : Icons.favorite_border, // Menyesuaikan ikon berdasarkan apakah item sudah di favorit atau belum
+                        color: Colors.red, // Menyesuaikan warna ikon berdasarkan keberadaan di favorit
+                      ),
                       onPressed: () {
                         addToFavorites(data.title ?? ''); // Panggil metode addToFavorites
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Game ditambahkan ke favorit'),
-                          ),
-                        );
                       },
                     ),
                     onTap: () {
