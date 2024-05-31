@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_tpm1/pages/detail_page.dart';
 import 'package:project_tpm1/pages/favorite_page.dart';
-import 'package:project_tpm1/pages/message_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'login_page.dart';
+import 'package:project_tpm1/pages/profile_page.dart';
 import 'package:http/http.dart' as http;
 import '../model/http_model.dart';
 import 'dart:convert';
@@ -18,14 +16,23 @@ class ListPage extends StatefulWidget {
 class _ListPageState extends State<ListPage> {
   List<mmoGamesList>? game = [];
   List<String> favorites = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<mmoGamesList> _filteredGames = [];
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    _searchController.addListener(_filterGames);
   }
 
-  // Metode untuk menambahkan item ke daftar favorit
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterGames);
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void addToFavorites(String title) {
     setState(() {
       if (!favorites.contains(title)) {
@@ -45,7 +52,6 @@ class _ListPageState extends State<ListPage> {
     });
   }
 
-  // Metode untuk mengambil data game dari API
   Future<void> fetchData() async {
     final response = await http.get(
         Uri.parse('https://www.mmobomb.com/api1/games?platform=pc'));
@@ -53,13 +59,13 @@ class _ListPageState extends State<ListPage> {
       final List<dynamic> responseData = jsonDecode(response.body);
       setState(() {
         game = responseData.map((json) => mmoGamesList.fromJson(json)).toList();
+        _filteredGames = game!;
       });
     } else {
       throw Exception('Failed to load data');
     }
   }
 
-  // Metode untuk memotong deskripsi menjadi 20 kata
   String truncateDescription(String description) {
     List<String> words = description.split(' ');
     if (words.length > 20) {
@@ -67,6 +73,16 @@ class _ListPageState extends State<ListPage> {
     } else {
       return description;
     }
+  }
+
+  void _filterGames() {
+    setState(() {
+      if (_searchController.text.isEmpty) {
+        _filteredGames = game!;
+      } else {
+        _filteredGames = game!.where((g) => g.title!.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+      }
+    });
   }
 
   @override
@@ -78,71 +94,39 @@ class _ListPageState extends State<ListPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          PopupMenuButton<String>(
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: 'FavoritePage',
-                child: Text('Favorite Page'),
+          Theme(
+            data: Theme.of(context).copyWith(
+              popupMenuTheme: PopupMenuThemeData(
+                color: Colors.white,
+                textStyle: TextStyle(color: Colors.black),
               ),
-              PopupMenuItem<String>(
-                value: 'Message',
-                child: Text('Message'),
-              ),
-            ],
-            onSelected: (String value) {
-              if (value == 'FavoritePage') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FavoritePage(
-                      favorites: favorites,
-                      onUpdateFavorites: (updatedFavorites) {
-                        setState(() {
-                          favorites = updatedFavorites; // Memperbarui favorites
-                        });
-                      },
+            ),
+            child: PopupMenuButton<String>(
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'FavoritePage',
+                  child: Text('Favorite Page'),
+                ),
+              ],
+              onSelected: (String value) async {
+                if (value == 'FavoritePage') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FavoritePage(
+                        favorites: favorites,
+                        onUpdateFavorites: (updatedFavorites) {
+                          setState(() {
+                            favorites = updatedFavorites;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                );
-              } else if (value == 'Message') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MyFormPage()),
-                );
-              }
-            },
-          )
-
-          // IconButton(
-          //   onPressed: () {
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(
-          //         builder: (context) => FavoritePage(
-          //           favorites: favorites,
-          //           onUpdateFavorites: (updatedFavorites) {
-          //             setState(() {
-          //               favorites = updatedFavorites; // Memperbarui favorites
-          //             });
-          //           },
-          //         ),
-          //       ),
-          //     );
-          //   },
-          //   icon: Icon(Icons.favorite, color: Colors.white),
-          // ),
-          // IconButton(
-          //   onPressed: () async {
-          //     SharedPreferences prefs = await SharedPreferences.getInstance();
-          //     await prefs.setBool('login', true);
-          //     Navigator.pushReplacement(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => LoginPage()),
-          //     );
-          //   },
-          //   icon: Icon(Icons.logout, color: Colors.white),
-          // )
+                  );
+                }
+              },
+            ),
+          ),
         ],
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
         centerTitle: true,
@@ -157,46 +141,75 @@ class _ListPageState extends State<ListPage> {
               "MMO Games List",
               style: TextStyle(fontSize: 30),
             ),
-
-            SizedBox(height: 20),
+            SizedBox(height: 8),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                hintText: 'Search...',
+                prefixIcon: Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _searchController.clear();
+                      _filterGames();
+                    });
+                  },
+                )
+                    : null,
+                filled: true,
+                fillColor: Colors.redAccent[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
-                itemCount: game?.length ?? 0,
+                itemCount: _filteredGames.length,
                 itemBuilder: (context, index) {
-                  final data = game![index];
-                  return ListTile(
-                    leading: Image.network(
-                      data.thumbnail ?? '',
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                    title: Text(
-                      data.title ?? '',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      truncateDescription(data.shortDescription ?? ''),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(
-                        favorites.contains(data.title) ? Icons.favorite : Icons.favorite_border, // Menyesuaikan ikon berdasarkan apakah item sudah di favorit atau belum
-                        color: Colors.red, // Menyesuaikan warna ikon berdasarkan keberadaan di favorit
+                  final data = _filteredGames[index];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    elevation: 5,
+                    child: ListTile(
+                      leading: Image.network(
+                        data.thumbnail ?? '',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
                       ),
-                      onPressed: () {
-                        addToFavorites(data.title ?? ''); // Panggil metode addToFavorites
+                      title: Text(
+                        data.title ?? '',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        truncateDescription(data.shortDescription ?? ''),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          favorites.contains(data.title) ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          addToFavorites(data.title ?? '');
+                        },
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailPage(game: data),
+                          ),
+                        );
                       },
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailPage(game: data),
-                        ),
-                      );
-                    },
                   );
                 },
               ),

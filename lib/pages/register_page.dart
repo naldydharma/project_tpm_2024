@@ -23,7 +23,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return digest.toString();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

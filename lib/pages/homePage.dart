@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:project_tpm1/pages/profile_page.dart';
 import 'package:project_tpm1/pages/konversi_uang.dart';
 import 'package:project_tpm1/pages/konversi_waktu.dart';
-import 'package:project_tpm1/pages/message_page.dart';
-import './profile_page.dart';
 import './list_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -15,13 +14,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  static List<Widget> _widgetOptions = <Widget> [
+  static List<Widget> _widgetOptions = <Widget>[
     ListPage(),
-    konversiUang(),
+    KonversiUang(),
     TimeConverterPage(),
-    MyFormPage()
-    // ProfilePage(),
-
+    ProfilePage(), // Tambahkan widget halaman profil di sini
   ];
 
   void _onItemTapped(int index) {
@@ -29,31 +26,48 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
   }
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return ListPage();
+      case 1:
+        return KonversiUang();
+      case 2:
+        return TimeConverterPage();
+      case 3:
+        return ProfilePage();
+      default:
+        return Container();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      body: _buildPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
+        onTap: _onItemTapped,
+        currentIndex: _selectedIndex,
+        selectedItemColor: Color.fromARGB(255, 255, 0, 0),
+        unselectedItemColor: Colors.grey,
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled),
-            label: 'Homepage'
+            icon: Icon(Icons.home, size: 30),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.monetization_on_outlined),
-              label: 'Currency'
+            icon: Icon(Icons.monetization_on, size: 30),
+            label: 'Currency',
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.lock_clock),
-              label: 'Time'
+            icon: Icon(Icons.access_time, size: 30),
+            label: 'Time',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle, size: 30),
+            label: 'Profile',
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.red,
-        onTap: _onItemTapped,
       ),
     );
   }
