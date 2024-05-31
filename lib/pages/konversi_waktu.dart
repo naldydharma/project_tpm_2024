@@ -118,7 +118,7 @@ class _TimeConverterPageState extends State<TimeConverterPage> {
       child: ListTile(
         leading: Icon(Icons.access_time),
         title: Text(
-          '${_formatTimeOfDay24Hour(_controller.convertedTime!.convertedDuration as TimeOfDay)} (${_controller.convertedTime!.endZone})',
+          '${_controller.convertedTime!.convertedDuration.inHours.toString().padLeft(2, '0')}:${(_controller.convertedTime!.convertedDuration.inMinutes.remainder(60)).toString().padLeft(2, '0')} (${_controller.convertedTime!.endZone})',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
