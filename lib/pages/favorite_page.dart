@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 class FavoritePage extends StatefulWidget {
   final List<String> favorites;
